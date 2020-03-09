@@ -1,4 +1,5 @@
 import pygame
+from pygame import mixer
 import random
 import math
 
@@ -10,6 +11,10 @@ screen = pygame.display.set_mode((800,600))
 
 # Background
 background = pygame.image.load('SpaceInvaders\gameBackGnd.png')
+
+# Background Sound
+mixer.music.load('SpaceInvaders\8BIT_Crossing_Field _LiSA_FULL.ogg')
+mixer.music.play(-1)
 
 # Title and Icon
 pygame.display.set_caption('Kevin Space Invaders')
@@ -50,7 +55,25 @@ bulletX_Movement = 0
 bulletY_Movement = 2
 bullet_state = 'Ready'
 
-score = 0
+# Score
+scoreValue = 0
+scoreFont = pygame.font.Font('freesansbold.ttf',32)
+textX = 10
+textY = 10
+
+# Game Over Text
+gameOverFont = pygame.font.Font('freesansbold.ttf',64)
+
+
+
+def scoreDisplayed(x,y):
+    score = scoreFont.render('Score : ' + str(scoreValue), True, (225,225,225))
+    screen.blit(score,(x, y))
+
+
+def gameOverText():
+    overText = gameOverFont.render('GAME OVER', True, (225,225,225))
+    screen.blit(overText,(200, 250))
 
 def player(x,y):
     screen.blit(playerIcon,(x, y))
@@ -98,7 +121,9 @@ while running:
                 #print('Right arrow')
             if event.key == pygame.K_SPACE:
                 if bullet_state == 'Ready':
-                    # gets current x coord of the spaceship
+                    bulletSound = mixer.Sound('SpaceInvaders\laser.wav')
+                    bulletSound.play()
+                    # gets current x cord of the spaceship
                     bulletX = playerX
                     fire_bullet(bulletX, bulletY)
                     #print('Space Key')   
@@ -121,6 +146,13 @@ while running:
 
     # Enemy Movement
     for i in range(numOfEnemies):
+        # Game Over
+        if enemyY[i] > 440:
+            for j in range(numOfEnemies):
+                enemyY[j] = 2000
+            gameOverText()
+            break
+
         enemyX[i] += enemyX_Movement[i]
         if enemyX[i] <= 0:
             enemyX_Movement[i] = 0.5
@@ -131,10 +163,12 @@ while running:
     # Collision
         collision = isCollision(enemyX[i], enemyY[i], bulletX, bulletY)
         if collision:
+            explosionSound = mixer.Sound('SpaceInvaders\explosion.wav')
+            explosionSound.play()
             bulletY = 480
             bullet_state = 'Ready'
-            score += 1
-            print(score)
+            scoreValue += 1
+            #print(scoreValue)
             enemyX[i] = random.randint(0, 755)
             enemyY[i] = random.randint(50, 150)
         
@@ -149,5 +183,5 @@ while running:
         bulletY -= bulletY_Movement
 
     player(playerX, playerY)
-
+    scoreDisplayed(textX,textY)
     pygame.display.update()
